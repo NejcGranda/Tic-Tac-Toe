@@ -6,14 +6,14 @@ pygame.init()
 # nariše črte za križec krožec
 def draw_lines():
     # horizontal line 1
-    pygame.draw.line(screen, LINE_COLOR, (0, 200), (600, 200), LINE_WIDTH)
+    pygame.draw.line(screen, LINE_COLOR, (0, SQARE_SIZE), (WIDTH, SQARE_SIZE), LINE_WIDTH)
     # horizontal line 2
-    pygame.draw.line(screen, LINE_COLOR, (0, 400), (600, 400), LINE_WIDTH)
+    pygame.draw.line(screen, LINE_COLOR, (0, 2 * SQARE_SIZE), (WIDTH, 2 * SQARE_SIZE), LINE_WIDTH)
 
     # vertical line 1
-    pygame.draw.line(screen, LINE_COLOR, (200, 0), (200, 600), LINE_WIDTH)
+    pygame.draw.line(screen, LINE_COLOR, (SQARE_SIZE, 0), (SQARE_SIZE, HEIGHT), LINE_WIDTH)
     # vertical line 2
-    pygame.draw.line(screen, LINE_COLOR, (400, 0), (400, 600), LINE_WIDTH)
+    pygame.draw.line(screen, LINE_COLOR, (2 * SQARE_SIZE, 0), (2 * SQARE_SIZE, HEIGHT), LINE_WIDTH)
 
 # označi kvadrat
 def mark_square(row, col, player):
@@ -42,42 +42,52 @@ def draw_XO():
 
             # player 1 turn
             if board[row] [col] == 1:
-                pygame.draw.circle(screen, O_COLOR, (int(col * 200 + 100), int(row * 200 + 100)), CIRCLE_RADIUS, CIRCLE_WIDTH)
+                pygame.draw.circle(screen, O_COLOR, (int(col * SQARE_SIZE + SQARE_SIZE // 2), int(row * SQARE_SIZE + SQARE_SIZE // 2)), CIRCLE_RADIUS, CIRCLE_WIDTH)
 
             # player 2 turn
             elif board[row] [col] == 2:
-                pygame.draw.line(screen, X_COLOR, (col * 200 + SPACE, row * 200 + 200 - SPACE), (col * 200 + 200 - SPACE, row * 200 + SPACE), X_WIDTH)
-                pygame.draw.line(screen, X_COLOR, (col * 200 + SPACE, row * 200 + SPACE), (col * 200 + 200 - SPACE, row * 200 + 200 - SPACE), X_WIDTH)
+                pygame.draw.line(screen, X_COLOR, (col * SQARE_SIZE + SPACE_SQUARE, row * SQARE_SIZE + SQARE_SIZE - SPACE_SQUARE), (col * SQARE_SIZE + SQARE_SIZE - SPACE_SQUARE, row * SQARE_SIZE + SPACE_SQUARE), X_WIDTH)
+                pygame.draw.line(screen, X_COLOR, (col * SQARE_SIZE + SPACE_SQUARE, row * SQARE_SIZE + SPACE_SQUARE), (col * SQARE_SIZE + SQARE_SIZE - SPACE_SQUARE, row * SQARE_SIZE + SQARE_SIZE - SPACE_SQUARE), X_WIDTH)
+
+# izpiše zmagovalca
+def draw_text(text, font, text_col, x, y):
+    img = font.render(text, True, text_col)
+    screen.blit(img, (x, y))
 
 # preveri za zmagovalca
 def win(player):
+
     # vertical win check
     for col in range(BOARD_COLS):
         if board[0] [col] == player and board[1] [col] == player and board[2] [col] == player:
             draw_vertical_winning_line(col, player)
+            draw_text(f"ZMAGAL JE PLAYER{player}", text_font, TEXT_COLOR, WIDTH // 2 - SPACE_BORDER, HEIGHT // 2 - SPACE_BORDER)
             return True
         
     # horizontal win check
     for row in range(BOARD_ROWS):
         if board[row] [0] == player and board[row] [1] == player and board[row] [2] == player:
             draw_horizontal_winning_line(row, player)
+            draw_text(f"ZMAGAL JE PLAYER{player}", text_font, TEXT_COLOR, WIDTH // 2 - SPACE_BORDER, HEIGHT // 2 - SPACE_BORDER)
             return True
         
     # asc diagonal win check
     if board[2] [0] == player and board[1] [1] == player and board[0] [2] == player:
         draw_asc_diagonal(player)
+        draw_text(f"ZMAGAL JE PLAYER{player}", text_font, TEXT_COLOR, WIDTH // 2 - SPACE_BORDER, HEIGHT // 2 - SPACE_BORDER)
         return True
     
     # desc diagonal win check
     if board[0] [0] == player and board[1] [1] == player and board[2] [2] == player:
         draw_desc_diagonal(player)
+        draw_text(f"ZMAGAL JE PLAYER{player}", text_font, TEXT_COLOR, WIDTH // 2 - SPACE_BORDER, HEIGHT // 2 - SPACE_BORDER)
         return True
     
     return False
 
 # nariše vodoravno črto zmagovalcu
 def draw_vertical_winning_line(col, player):
-    pos_x = col * 200 + 100
+    pos_x = col * SQARE_SIZE + SQARE_SIZE // 2
 
     if player == 1:
         color = O_COLOR
@@ -88,7 +98,7 @@ def draw_vertical_winning_line(col, player):
 
 # nariše navpično črto zmagovalcu
 def draw_horizontal_winning_line(row, player):
-    pos_y = row * 200 + 100
+    pos_y = row * SQARE_SIZE + SQARE_SIZE // 2
 
     if player == 1:
         color = O_COLOR
@@ -125,22 +135,33 @@ def restart():
             board[col] [row] = 0
 
 
-WIDTH = 600
-HEIGHT = 600
+WIDTH = 900
+HEIGHT = WIDTH
+
 LINE_WIDTH = 7
-WINNING_LINE_WIDTH = 15
 X_WIDTH = 25
-SPACE = 50
-CIRCLE_RADIUS = 60
-CIRCLE_WIDTH = 15
+WINNING_LINE_WIDTH = 15
+
 BOARD_ROWS = 3
 BOARD_COLS = 3
+
+SQARE_SIZE = WIDTH // BOARD_COLS
+
+SPACE_SQUARE = SQARE_SIZE // 4
+SPACE_BORDER = WIDTH // 4 + 100
+
+CIRCLE_RADIUS = SQARE_SIZE // 3
+CIRCLE_WIDTH = 15
+
 
 # colors
 LINE_COLOR = (0, 0, 0)
 BG_COLOR = (0, 255, 255)
 X_COLOR = (255, 0, 0)
 O_COLOR = (0, 0, 255)
+TEXT_COLOR = (100, 100, 100)
+
+text_font = pygame.font.SysFont("Arial", WIDTH // 12)
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))  
 title = pygame.display.set_caption("Tic Tac Toe") 
@@ -168,28 +189,22 @@ while True:
 
 
             # izračuna pozicijo kvadratkov v [0] [1] [2]
-            clicked_row = int(mouse_y) // 200
-            clicked_col = int(mouse_x) // 200
+            clicked_row = int(mouse_y) // SQARE_SIZE
+            clicked_col = int(mouse_x) // SQARE_SIZE
 
             
             if avaible_square(clicked_row, clicked_col):
-                if player == 1:
-                    mark_square(clicked_row, clicked_col, 1)
-                    if win(player):
-                        game_over = True
-                    player = 2
-
-                elif player == 2:
-                    mark_square(clicked_row, clicked_col, 2)
-                    if win(player):
-                        game_over = True
-                    player = 1
+                mark_square(clicked_row, clicked_col, player)
+                if win(player):
+                    game_over = True
+                player = player % 2 + 1
 
                 draw_XO()
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_r:
                 restart()
+                game_over = False
 
 
     pygame.display.update()
